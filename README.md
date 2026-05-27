@@ -34,11 +34,42 @@ Create a `.env` file inside the `server/` directory:
 ```bash
 cp server/.env.example server/.env  # Or edit server/.env if already present
 ```
-Configure your OpenAI API key and server port:
-```env
-PORT=5000
-OPENAI_API_KEY=your_openai_key_here
-```
+
+Configure your local port and LLM configurations in `server/.env`.
+
+#### Option A: Running with LM Studio (Default)
+1. Launch **LM Studio** on your local machine.
+2. Select and download a model (e.g., `mistralai/ministral-3-3b` or `phi-3`).
+3. Head to the **Local Server** tab in LM Studio and click **Start Server**.
+4. In your `server/.env`:
+   ```env
+   PORT=3001
+   LLM_PROVIDER=lmstudio
+   LM_STUDIO_URL=http://localhost:1234/v1
+   LM_STUDIO_MODEL=mistralai/ministral-3-3b
+   ```
+
+#### Option B: Running with Ollama
+1. Download and install **[Ollama](https://ollama.com/)**.
+2. Run your target model in your terminal:
+   ```bash
+   ollama run llama3
+   ```
+3. In your `server/.env`:
+   ```env
+   PORT=3001
+   LLM_PROVIDER=ollama
+   OLLAMA_URL=http://localhost:11434/v1
+   OLLAMA_MODEL=llama3
+   ```
+
+---
+
+### ⚙️ Frontend Advanced LLM Customization
+You can also customize, override, or test different local LLM endpoints directly in the web UI!
+1. Launch the application and click **Launch Local Interview**.
+2. Click **⚙️ Show Advanced Local LLM Settings**.
+3. Toggle between **LM Studio**, **Ollama**, or **Custom Endpoint** to enter a specific base API URL and model name on the fly.
 
 ### 3. Installation
 Install all dependencies for both the client and server with a single command from the root folder:

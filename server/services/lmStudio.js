@@ -4,22 +4,72 @@ import { SYSTEM_PROMPTS, generateQuestionPrompt, generateEvaluationPrompt } from
 
 dotenv.config();
 
-const client = new OpenAI({
-  baseURL: process.env.LM_STUDIO_URL || 'http://localhost:1234/v1',
-  apiKey: 'lm-studio', // Dummy API key required by SDK
-});
+/**
+ * Resolves the OpenAI API client and model based on environment or session settings
+ */
+function getLlmClientAndModel(llmSettings) {
+  if (llmSettings && llmSettings.provider) {
+    const { provider, url, model } = llmSettings;
+    if (provider === 'ollama') {
+      return {
+        client: new OpenAI({
+          baseURL: url || process.env.OLLAMA_URL || 'http://localhost:11434/v1',
+          apiKey: 'ollama', // Dummy key for Ollama
+        }),
+        model: model || process.env.OLLAMA_MODEL || 'llama3'
+      };
+    } else if (provider === 'lmstudio') {
+      return {
+        client: new OpenAI({
+          baseURL: url || process.env.LM_STUDIO_URL || 'http://localhost:1234/v1',
+          apiKey: 'lm-studio', // Dummy key for LM Studio
+        }),
+        model: model || process.env.LM_STUDIO_MODEL || 'mistralai/ministral-3-3b'
+      };
+    } else if (provider === 'custom') {
+      return {
+        client: new OpenAI({
+          baseURL: url,
+          apiKey: llmSettings.apiKey || 'custom-key',
+        }),
+        model: model
+      };
+    }
+  }
 
-const MODEL_NAME = process.env.LM_STUDIO_MODEL || 'mistralai/ministral-3-3b';
+  // Fallback to server env variables
+  const serverProvider = process.env.LLM_PROVIDER || 'lmstudio';
+  if (serverProvider === 'ollama') {
+    return {
+      client: new OpenAI({
+        baseURL: process.env.OLLAMA_URL || 'http://localhost:11434/v1',
+        apiKey: 'ollama',
+      }),
+      model: process.env.OLLAMA_MODEL || 'llama3'
+    };
+  }
+
+  // Default fallback is LM Studio configuration
+  return {
+    client: new OpenAI({
+      baseURL: process.env.LM_STUDIO_URL || 'http://localhost:1234/v1',
+      apiKey: 'lm-studio',
+    }),
+    model: process.env.LM_STUDIO_MODEL || 'mistralai/ministral-3-3b'
+  };
+}
 
 /**
- * Generates the next question using LM Studio
+ * Generates the next question using LM Studio or Ollama
  */
 export async function getNextQuestion(config, history) {
   try {
     const prompt = generateQuestionPrompt(config, history);
     
+    const { client, model } = getLlmClientAndModel(config.llmSettings);
+    
     const response = await client.chat.completions.create({
-      model: MODEL_NAME,
+      model: model,
       messages: [
         { role: 'system', content: SYSTEM_PROMPTS.interviewer },
         { role: 'user', content: prompt }
@@ -30,20 +80,22 @@ export async function getNextQuestion(config, history) {
 
     return response.choices[0].message.content.trim();
   } catch (error) {
-    console.warn('⚠️ LM Studio connection failed or returned an error. Falling back to local Mock IntervAI mode to keep interview active:', error.message);
+    console.warn('⚠️ Local LLM connection failed or returned an error. Falling back to local Mock IntervAI mode to keep interview active:', error.message);
     return getMockQuestion(config, history);
   }
 }
 
 /**
- * Evaluates the full interview session using LM Studio
+ * Evaluates the full interview session using the local LLM
  */
 export async function evaluateSession(config, qaPairs) {
   try {
     const prompt = generateEvaluationPrompt(config, qaPairs);
 
+    const { client, model } = getLlmClientAndModel(config.llmSettings);
+
     const response = await client.chat.completions.create({
-      model: MODEL_NAME,
+      model: model,
       messages: [
         { role: 'system', content: SYSTEM_PROMPTS.evaluator },
         { role: 'user', content: prompt }

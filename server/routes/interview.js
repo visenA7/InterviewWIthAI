@@ -11,7 +11,7 @@ const router = express.Router();
  */
 router.post('/start', async (req, res) => {
   try {
-    const { type, role, difficulty, numQuestions, focusAreas } = req.body;
+    const { type, role, difficulty, numQuestions, focusAreas, llmSettings } = req.body;
 
     if (!type || !role || !difficulty || !numQuestions) {
       return res.status(400).json({ error: 'Missing required configuration fields' });
@@ -23,7 +23,8 @@ router.post('/start', async (req, res) => {
       role,
       difficulty,
       numQuestions: parseInt(numQuestions, 10),
-      focusAreas: focusAreas || []
+      focusAreas: focusAreas || [],
+      llmSettings: llmSettings || null
     };
 
     // Create session in session storage

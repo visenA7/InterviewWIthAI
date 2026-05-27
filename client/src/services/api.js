@@ -12,13 +12,13 @@ export const api = {
   /**
    * Starts a new interview session
    */
-  async startInterview({ type, role, difficulty, numQuestions, focusAreas }) {
+  async startInterview({ type, role, difficulty, numQuestions, focusAreas, llmSettings }) {
     const response = await fetch(`${API_BASE_URL}/start`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ type, role, difficulty, numQuestions, focusAreas })
+      body: JSON.stringify({ type, role, difficulty, numQuestions, focusAreas, llmSettings })
     });
     return handleResponse(response);
   },
