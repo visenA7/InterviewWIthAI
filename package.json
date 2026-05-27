@@ -1,0 +1,22 @@
+{
+  "name": "ai-interview-trainer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack AI Interview Trainer application with React frontend and Express backend",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "dev:client": "npm run dev -w client",
+    "dev:server": "npm run dev -w server",
+    "dev": "concurrently --kill-others-on-fail \"npm run dev:server\" \"npm run dev:client\"",
+    "build:client": "npm run build -w client",
+    "start:server": "npm run start -w server",
+    "lint:client": "npm run lint -w client"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

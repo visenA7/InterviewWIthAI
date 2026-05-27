@@ -1,0 +1,21 @@
+{
+  "name": "ai-interview-trainer-server",
+  "version": "1.0.0",
+  "description": "Backend proxy and session manager for AI Interview Trainer",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon --ignore data/ index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.33.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
