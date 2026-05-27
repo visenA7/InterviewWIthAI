@@ -28,6 +28,8 @@ export default function App() {
     exitInterview,
     loadHistory,
     viewSessionResults,
+    deleteInterview,
+    clearHistory,
 
     // Speech States
     isListening,
@@ -111,6 +113,8 @@ export default function App() {
             loadHistory={loadHistory}
             onViewDetails={viewSessionResults}
             onExit={handleBackToLanding}
+            deleteInterview={deleteInterview}
+            clearHistory={clearHistory}
           />
         );
 

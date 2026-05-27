@@ -65,6 +65,26 @@ export const api = {
   async getInterviewDetails(id) {
     const response = await fetch(`${API_BASE_URL}/${id}`);
     return handleResponse(response);
+  },
+
+  /**
+   * Deletes a specific interview session
+   */
+  async deleteInterview(id) {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+      method: 'DELETE'
+    });
+    return handleResponse(response);
+  },
+
+  /**
+   * Clears all completed interview history sessions
+   */
+  async clearHistory() {
+    const response = await fetch(`${API_BASE_URL}/history/clear`, {
+      method: 'DELETE'
+    });
+    return handleResponse(response);
   }
 };
 export default api;

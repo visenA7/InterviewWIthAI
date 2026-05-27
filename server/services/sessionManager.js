@@ -93,9 +93,23 @@ class SessionManager {
     return session;
   }
 
+  deleteSession(id) {
+    const deleted = this.sessions.delete(id);
+    if (deleted) {
+      this.saveToDisk();
+    }
+    return deleted;
+  }
+
+  clearAllHistory() {
+    this.sessions.clear();
+    this.saveToDisk();
+  }
+
   getHistory() {
-    // Return all completed or active sessions, sorted by date
+    // Return all completed sessions, sorted by date
     return Array.from(this.sessions.values())
+      .filter(session => session.status === 'completed')
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }
 }

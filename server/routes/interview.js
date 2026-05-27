@@ -170,4 +170,35 @@ router.get('/:id', (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/interview/history/clear
+ * Clears all interview sessions from history
+ */
+router.delete('/history/clear', (req, res) => {
+  try {
+    sessionManager.clearAllHistory();
+    res.status(200).json({ success: true, message: 'All history cleared successfully' });
+  } catch (error) {
+    console.error('Error clearing history:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * DELETE /api/interview/:id
+ * Deletes a specific interview session
+ */
+router.delete('/:id', (req, res) => {
+  try {
+    const deleted = sessionManager.deleteSession(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    res.status(200).json({ success: true, message: 'Session deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting session:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

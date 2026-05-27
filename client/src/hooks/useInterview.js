@@ -114,7 +114,7 @@ export default function useInterview() {
     startListening,
     stopListening,
   } = useSpeechRecognition({
-    silenceTimeoutMs: 7000, // 7s normal pause — enough for natural thinking
+    silenceTimeoutMs: 5000, // 5s normal pause — enough for natural thinking
     thinkingTimeoutMs: 20000, // 20s when user says "let me think", "hold on", etc.
     onResultCommit: handleSTTCommit,
   });
@@ -169,6 +169,31 @@ export default function useInterview() {
     }
   }, []);
 
+  const deleteInterview = useCallback(
+    async (id) => {
+      setBackendError(null);
+      try {
+        await api.deleteInterview(id);
+        await loadHistory();
+      } catch (err) {
+        console.error("Failed to delete interview:", err);
+        setBackendError("Could not delete interview session.");
+      }
+    },
+    [loadHistory],
+  );
+
+  const clearHistory = useCallback(async () => {
+    setBackendError(null);
+    try {
+      await api.clearHistory();
+      setHistoryList([]);
+    } catch (err) {
+      console.error("Failed to clear history:", err);
+      setBackendError("Could not clear history.");
+    }
+  }, []);
+
   // Handle exiting or canceling an active session
   const exitInterview = useCallback(() => {
     cancelTTS();
@@ -219,6 +244,8 @@ export default function useInterview() {
     exitInterview,
     loadHistory,
     viewSessionResults,
+    deleteInterview,
+    clearHistory,
 
     // Speech states
     isListening,
