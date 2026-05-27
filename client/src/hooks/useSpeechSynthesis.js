@@ -2,12 +2,26 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 export default function useSpeechSynthesis(options = {}) {
   const {
-    rate = 1.0,
-    pitch = 1.0,
     onStart = () => {},
     onEnd = () => {},
     onError = () => {}
   } = options;
+
+  const [rate, setRate] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('intervai_audio_rate');
+      return saved ? parseFloat(saved) : (options.rate || 1.0);
+    }
+    return options.rate || 1.0;
+  });
+
+  const [pitch, setPitch] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('intervai_audio_pitch');
+      return saved ? parseFloat(saved) : (options.pitch || 1.0);
+    }
+    return options.pitch || 1.0;
+  });
 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState([]);
@@ -29,6 +43,22 @@ export default function useSpeechSynthesis(options = {}) {
     onErrorRef.current = onError;
   }, [onStart, onEnd, onError]);
 
+  const updateRate = useCallback((newRate) => {
+    const val = parseFloat(newRate);
+    setRate(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('intervai_audio_rate', val.toString());
+    }
+  }, []);
+
+  const updatePitch = useCallback((newPitch) => {
+    const val = parseFloat(newPitch);
+    setPitch(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('intervai_audio_pitch', val.toString());
+    }
+  }, []);
+
   // Load and filter suitable English voices
   const loadVoices = useCallback(() => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
@@ -36,19 +66,27 @@ export default function useSpeechSynthesis(options = {}) {
     const allVoices = window.speechSynthesis.getVoices();
     setVoices(allVoices);
 
-    // Pick a natural-sounding English voice if available
-    const preferredVoices = [
-      'Google UK English Female',
-      'Google US English',
-      'Microsoft Zira',
-      'Samantha',
-      'Daniel'
-    ];
-
+    // Try loading saved voice first
+    const savedVoiceName = typeof window !== 'undefined' ? localStorage.getItem('intervai_audio_voice_name') : null;
     let foundVoice = null;
-    for (const name of preferredVoices) {
-      foundVoice = allVoices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
-      if (foundVoice) break;
+    if (savedVoiceName) {
+      foundVoice = allVoices.find(v => v.name === savedVoiceName);
+    }
+
+    if (!foundVoice) {
+      // Pick a natural-sounding English voice if available
+      const preferredVoices = [
+        'Google UK English Female',
+        'Google US English',
+        'Microsoft Zira',
+        'Samantha',
+        'Daniel'
+      ];
+
+      for (const name of preferredVoices) {
+        foundVoice = allVoices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
+        if (foundVoice) break;
+      }
     }
 
     if (!foundVoice) {
@@ -126,6 +164,9 @@ export default function useSpeechSynthesis(options = {}) {
     const voice = voices.find(v => v.name === name);
     if (voice) {
       setSelectedVoice(voice);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('intervai_audio_voice_name', name);
+      }
     }
   }, [voices]);
 
@@ -134,6 +175,10 @@ export default function useSpeechSynthesis(options = {}) {
     voices,
     selectedVoice,
     isSupported,
+    rate,
+    pitch,
+    setRate: updateRate,
+    setPitch: updatePitch,
     speak,
     cancel,
     selectVoiceByName

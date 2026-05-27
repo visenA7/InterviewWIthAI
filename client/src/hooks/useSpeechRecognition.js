@@ -11,6 +11,53 @@ const THINKING_PHRASES = [
   "uh",
 ];
 
+// Dictionary of common tech mishearings mapped to their proper formatting
+const DEFAULT_TECH_MAP = {
+  "cgm js": "Cesium.js",
+  "cgm.js": "Cesium.js",
+  "cg js": "Cesium.js",
+  "cgm": "Cesium",
+  "cesium js": "Cesium.js",
+  "sesium": "Cesium",
+  "sequel": "SQL",
+  "no sequel": "NoSQL",
+  "postgres": "PostgreSQL",
+  "mongo": "MongoDB",
+  "react js": "React.js",
+  "next js": "Next.js",
+  "vue js": "Vue.js",
+  "node js": "Node.js",
+  "typescript": "TypeScript",
+  "javascript": "JavaScript",
+  "github": "GitHub",
+  "git hub": "GitHub",
+  "rest api": "REST API",
+  "restful api": "RESTful API",
+  "graphql": "GraphQL",
+  "three js": "Three.js",
+  "three.js": "Three.js",
+};
+
+/**
+ * Clean up transcripts and correct commonly misheard developer terms
+ */
+export function applySpeechCorrections(text, customMap = {}) {
+  if (!text) return text;
+  
+  const combinedMap = { ...DEFAULT_TECH_MAP, ...customMap };
+  let correctedText = text;
+  const keys = Object.keys(combinedMap).sort((a, b) => b.length - a.length);
+
+  for (const key of keys) {
+    const replacement = combinedMap[key];
+    const escapedKey = key.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    // Match the target word with appropriate boundaries
+    const regex = new RegExp(`(?<=\\b|\\s|^)${escapedKey}(?=\\b|\\s|$|[.,!?;])`, "gi");
+    correctedText = correctedText.replace(regex, replacement);
+  }
+  return correctedText;
+}
+
 export default function useSpeechRecognition(options = {}) {
   const {
     continuous = true,
@@ -19,6 +66,8 @@ export default function useSpeechRecognition(options = {}) {
     silenceTimeoutMs = 7000,   // Default: 7 s — comfortable pause for natural speech
     thinkingTimeoutMs = 20000, // Extended: 20 s when user says a thinking phrase
     onResultCommit = () => {}, // Callback when final transcript is committed
+    enableCorrection = true,
+    customCorrectionMap = {},
   } = options;
 
   const [isListening, setIsListening] = useState(false);
@@ -40,12 +89,16 @@ export default function useSpeechRecognition(options = {}) {
   const onResultCommitRef = useRef(onResultCommit);
   const silenceTimeoutMsRef = useRef(silenceTimeoutMs);
   const thinkingTimeoutMsRef = useRef(thinkingTimeoutMs);
+  const enableCorrectionRef = useRef(enableCorrection);
+  const customCorrectionMapRef = useRef(customCorrectionMap);
 
   useEffect(() => {
     onResultCommitRef.current = onResultCommit;
     silenceTimeoutMsRef.current = silenceTimeoutMs;
     thinkingTimeoutMsRef.current = thinkingTimeoutMs;
-  }, [onResultCommit, silenceTimeoutMs, thinkingTimeoutMs]);
+    enableCorrectionRef.current = enableCorrection;
+    customCorrectionMapRef.current = customCorrectionMap;
+  }, [onResultCommit, silenceTimeoutMs, thinkingTimeoutMs, enableCorrection, customCorrectionMap]);
 
   const stopListening = useCallback(() => {
     if (!recognitionRef.current) return;
@@ -177,8 +230,11 @@ export default function useSpeechRecognition(options = {}) {
         ).trim();
 
         if (fullLiveTranscript) {
-          setTranscript(fullLiveTranscript);
-          resetSilenceTimerRef.current?.(fullLiveTranscript);
+          const correctedText = enableCorrectionRef.current
+            ? applySpeechCorrections(fullLiveTranscript, customCorrectionMapRef.current)
+            : fullLiveTranscript;
+          setTranscript(correctedText);
+          resetSilenceTimerRef.current?.(correctedText);
         }
       };
 

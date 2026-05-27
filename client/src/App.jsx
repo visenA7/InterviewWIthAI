@@ -39,6 +39,18 @@ export default function App() {
     isSpeaking,
     skipQuestion,
     manualSubmitText,
+    voices,
+    selectedVoice,
+    selectVoiceByName,
+    speak,
+    rate,
+    pitch,
+    setRate,
+    setPitch,
+    enableCorrection,
+    setEnableCorrection,
+    customCorrectionMap,
+    setCustomCorrectionMap,
   } = useInterview();
 
   // Sub-step inside 'setup' to toggle between Landing page and Config Form
@@ -71,6 +83,18 @@ export default function App() {
             onSubmit={startInterview}
             isProcessing={isProcessing}
             backendError={backendError}
+            voices={voices}
+            selectedVoice={selectedVoice}
+            selectVoiceByName={selectVoiceByName}
+            speak={speak}
+            rate={rate}
+            pitch={pitch}
+            setRate={setRate}
+            setPitch={setPitch}
+            enableCorrection={enableCorrection}
+            setEnableCorrection={setEnableCorrection}
+            customCorrectionMap={customCorrectionMap}
+            setCustomCorrectionMap={setCustomCorrectionMap}
           />
         );
 
@@ -90,6 +114,18 @@ export default function App() {
             manualSubmitText={manualSubmitText}
             exitInterview={handleBackToLanding}
             backendError={backendError || sttError}
+            voices={voices}
+            selectedVoice={selectedVoice}
+            selectVoiceByName={selectVoiceByName}
+            speak={speak}
+            rate={rate}
+            pitch={pitch}
+            setRate={setRate}
+            setPitch={setPitch}
+            enableCorrection={enableCorrection}
+            setEnableCorrection={setEnableCorrection}
+            customCorrectionMap={customCorrectionMap}
+            setCustomCorrectionMap={setCustomCorrectionMap}
           />
         );
 

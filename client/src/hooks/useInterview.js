@@ -50,6 +50,10 @@ export default function useInterview() {
     voices,
     selectedVoice,
     selectVoiceByName,
+    rate,
+    pitch,
+    setRate,
+    setPitch,
   } = useSpeechSynthesis({
     onStart: handleTTSStart,
     onEnd: handleTTSEnd,
@@ -106,6 +110,43 @@ export default function useInterview() {
     [sessionId, appendChat, speak],
   );
 
+  // Auto-correction State for Speech Recognition
+  const [enableCorrection, setEnableCorrection] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('intervai_enable_correction');
+      return saved !== 'false';
+    }
+    return true;
+  });
+
+  const [customCorrectionMap, setCustomCorrectionMap] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('intervai_custom_correction_map');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          return {};
+        }
+      }
+    }
+    return {};
+  });
+
+  const updateEnableCorrection = useCallback((val) => {
+    setEnableCorrection(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('intervai_enable_correction', val.toString());
+    }
+  }, []);
+
+  const updateCustomCorrectionMap = useCallback((newMap) => {
+    setCustomCorrectionMap(newMap);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('intervai_custom_correction_map', JSON.stringify(newMap));
+    }
+  }, []);
+
   const {
     isListening,
     transcript,
@@ -117,6 +158,8 @@ export default function useInterview() {
     silenceTimeoutMs: 5000, // 5s normal pause — enough for natural thinking
     thinkingTimeoutMs: 20000, // 20s when user says "let me think", "hold on", etc.
     onResultCommit: handleSTTCommit,
+    enableCorrection,
+    customCorrectionMap,
   });
 
   // Keep the ref in sync with the latest startListening after every render.
@@ -257,6 +300,15 @@ export default function useInterview() {
     voices,
     selectedVoice,
     selectVoiceByName,
+    speak,
+    rate,
+    pitch,
+    setRate,
+    setPitch,
+    enableCorrection,
+    setEnableCorrection: updateEnableCorrection,
+    customCorrectionMap,
+    setCustomCorrectionMap: updateCustomCorrectionMap,
 
     // Direct manual overrides
     skipQuestion: useCallback(() => {

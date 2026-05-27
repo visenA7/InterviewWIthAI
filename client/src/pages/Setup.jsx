@@ -1,11 +1,35 @@
 import { useState } from "react";
 import "./Setup.css";
 
-export default function Setup({ onSubmit, isProcessing, backendError }) {
+export default function Setup({
+  onSubmit,
+  isProcessing,
+  backendError,
+  voices = [],
+  selectedVoice,
+  selectVoiceByName,
+  speak,
+  rate,
+  pitch,
+  setRate,
+  setPitch,
+  enableCorrection,
+  setEnableCorrection,
+  customCorrectionMap,
+  setCustomCorrectionMap,
+}) {
   const [type, setType] = useState("Technical");
   const [role, setRole] = useState("Software Engineer");
   const [difficulty, setDifficulty] = useState("Medium");
   const [numQuestions, setNumQuestions] = useState(5);
+
+  // Audio and Speech settings
+  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+  const [correctionMapText, setCorrectionMapText] = useState(() => {
+    return Object.entries(customCorrectionMap || {})
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(", ");
+  });
 
   // Advanced LLM settings
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -45,6 +69,31 @@ export default function Setup({ onSubmit, isProcessing, backendError }) {
 
   const handleRemoveChip = (chip) => {
     setFocusAreas(focusAreas.filter((c) => c !== chip));
+  };
+
+  const handleCorrectionTextChange = (e) => {
+    const val = e.target.value;
+    setCorrectionMapText(val);
+    
+    // Parse the comma-separated key:value string into a dictionary object
+    const map = {};
+    val.split(",").forEach((part) => {
+      const splitIdx = part.indexOf(":");
+      if (splitIdx !== -1) {
+        const key = part.substring(0, splitIdx).trim().toLowerCase();
+        const value = part.substring(splitIdx + 1).trim();
+        if (key && value) {
+          map[key] = value;
+        }
+      }
+    });
+    setCustomCorrectionMap(map);
+  };
+
+  const handleTestVoice = () => {
+    if (speak) {
+      speak("Hello! I am your AI Interviewer. How does my voice sound to you at this speed and pitch?");
+    }
   };
 
   const handleSubmit = (e) => {
@@ -239,6 +288,141 @@ export default function Setup({ onSubmit, isProcessing, backendError }) {
             <span>9</span>
             <span>10</span>
           </div>
+        </div>
+
+        {/* Collapsible Voice & Speech Settings */}
+        <div className="voice-settings-section">
+          <button
+            type="button"
+            className="advanced-toggle-btn"
+            onClick={() => setShowVoiceSettings(!showVoiceSettings)}
+            style={{ marginBottom: showVoiceSettings ? "0.75rem" : "0" }}
+          >
+            <span>
+              {showVoiceSettings ? "🗣️ Hide" : "🗣️ Show"} Voice & Speech Settings
+            </span>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              className={`arrow-icon ${showVoiceSettings ? "expanded" : ""}`}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {showVoiceSettings && (
+            <div className="advanced-llm-panel glass-panel animate-fade-in">
+              {/* Voice Selection & Test Button */}
+              <div className="form-group">
+                <label className="form-label" htmlFor="voice-select">Interviewer Accent / Voice</label>
+                <div className="voice-test-row">
+                  <div className="voice-select-wrapper">
+                    <select
+                      id="voice-select"
+                      className="form-select"
+                      value={selectedVoice?.name || ""}
+                      onChange={(e) => selectVoiceByName(e.target.value)}
+                      disabled={isProcessing}
+                    >
+                      {voices.map((v) => (
+                        <option key={v.name} value={v.name}>
+                          {v.name} ({v.lang})
+                        </option>
+                      ))}
+                      {voices.length === 0 && (
+                        <option value="">No system voices loaded yet</option>
+                      )}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary voice-test-btn"
+                    onClick={handleTestVoice}
+                    disabled={isProcessing}
+                  >
+                    🔊 Test Voice
+                  </button>
+                </div>
+              </div>
+
+              {/* Speed (Rate) and Pitch */}
+              <div className="form-row-2">
+                <div className="form-group">
+                  <div className="slider-label-row">
+                    <label className="form-label">Speaking Speed (Rate)</label>
+                    <span className="slider-value-badge">{rate.toFixed(1)}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    className="form-slider"
+                    min="0.7"
+                    max="1.5"
+                    step="0.1"
+                    value={rate}
+                    onChange={(e) => setRate(parseFloat(e.target.value))}
+                    disabled={isProcessing}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <div className="slider-label-row">
+                    <label className="form-label">Voice Pitch</label>
+                    <span className="slider-value-badge">{pitch.toFixed(1)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    className="form-slider"
+                    min="0.5"
+                    max="1.5"
+                    step="0.1"
+                    value={pitch}
+                    onChange={(e) => setPitch(parseFloat(e.target.value))}
+                    disabled={isProcessing}
+                  />
+                </div>
+              </div>
+
+              <hr style={{ margin: "1.25rem 0", borderColor: "var(--border-glass)", opacity: 0.3 }} />
+
+              {/* STT Auto-Correction Toggle */}
+              <div className="form-group">
+                <label className="checkbox-container">
+                  <input
+                    type="checkbox"
+                    checked={enableCorrection}
+                    onChange={(e) => setEnableCorrection(e.target.checked)}
+                    disabled={isProcessing}
+                  />
+                  <span>Enable Tech Terms Auto-Correction (e.g. "cgm js" ➔ "Cesium.js")</span>
+                </label>
+              </div>
+
+              {/* Custom Correction Mapping */}
+              {enableCorrection && (
+                <div className="form-group animate-slide-up" style={{ marginTop: "0.75rem" }}>
+                  <label className="form-label" htmlFor="custom-corrections">
+                    Custom Pronunciation Map (comma-separated <code>misheard: correct</code>)
+                  </label>
+                  <textarea
+                    id="custom-corrections"
+                    className="form-textarea correction-textarea"
+                    rows="2"
+                    value={correctionMapText}
+                    onChange={handleCorrectionTextChange}
+                    placeholder="e.g. cgm js: Cesium.js, three js: Three.js, sequel: SQL"
+                    disabled={isProcessing}
+                  />
+                  <p className="advanced-info-text">
+                    Add custom rules for terms the browser mishears when you speak. Format as: <code>key: Value</code>, separated by commas.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Collapsible Advanced Settings */}

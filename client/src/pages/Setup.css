@@ -307,3 +307,56 @@
   line-height: 1.4;
 }
 
+/* Voice & Audio Settings Panel Styles */
+.voice-settings-section {
+  margin-top: 1.5rem;
+}
+
+.voice-test-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.voice-select-wrapper {
+  flex: 1;
+}
+
+.voice-test-btn {
+  padding: 0 1.25rem !important;
+  border-radius: 12px !important;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: var(--transition-smooth);
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin: 0.75rem 0;
+  user-select: none;
+}
+
+.checkbox-container input {
+  cursor: pointer;
+  accent-color: var(--accent-primary);
+  width: 18px;
+  height: 18px;
+}
+
+.correction-textarea {
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  padding: 0.75rem 1rem !important;
+}
+
